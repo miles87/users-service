@@ -1,20 +1,19 @@
 package pl.betse.beontime.model.user;
 
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import pl.betse.beontime.model.department.UserDepartment;
 import pl.betse.beontime.model.role.UserRole;
 
 import javax.persistence.*;
 import java.util.Set;
 
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "USERS")
+@Table(name = "USER")
 public class User {
 
     @Id
@@ -42,6 +41,9 @@ public class User {
     private UserDepartment userDepartment;
 
     @ManyToMany
+    @JoinTable(name = "USER_ROLES",
+            joinColumns = @JoinColumn(name = "USER_ID"),
+            inverseJoinColumns = @JoinColumn(name = "ROLE_ID"))
     private Set<UserRole> roles;
 
 

@@ -1,19 +1,18 @@
 package pl.betse.beontime.model.role;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import pl.betse.beontime.model.enums.RoleEnum;
 import pl.betse.beontime.model.user.User;
 
 import javax.persistence.*;
 import java.util.Set;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "ROLES")
+@Table(name = "ROLE")
 public class UserRole {
 
     @Id
@@ -26,13 +25,14 @@ public class UserRole {
     @ManyToMany(mappedBy = "roles")
     private Set<User> users;
 
-    /*public UserRole(RoleEnum roleEnum) {
+    public UserRole(RoleEnum roleEnum) {
         this.role = roleEnum.name();
-    }*/
-
-    public UserRole(String role) {
-        this.role = role;
     }
+
+
+
+
+
 
     /*ADMINISTRATION,
     CONSULTANT,

@@ -20,13 +20,10 @@ public class UserDepartment {
     @Column(name = "DEPARTMENT_ID")
     private int id;
 
-    /*public UserDepartment(DepartmentEnum name) {
+     public UserDepartment(DepartmentEnum name) {
         this.name = name.name();
-    }*/
-
-    public UserDepartment(String name) {
-        this.name = name;
     }
+
 
     private String name;
 
