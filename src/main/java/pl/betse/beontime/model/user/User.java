@@ -1,6 +1,7 @@
 package pl.betse.beontime.model.user;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import pl.betse.beontime.model.department.UserDepartment;
 import pl.betse.beontime.model.role.UserRole;
@@ -38,9 +39,11 @@ public class User {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "DEPARTMENT_ID")
+    @JsonIgnore
     private UserDepartment userDepartment;
 
     @ManyToMany
+    @JsonIgnore
     @JoinTable(name = "USER_ROLES",
             joinColumns = @JoinColumn(name = "USER_ID"),
             inverseJoinColumns = @JoinColumn(name = "ROLE_ID"))
