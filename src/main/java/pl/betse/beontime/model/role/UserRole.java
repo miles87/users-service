@@ -20,6 +20,7 @@ public class UserRole {
     @Column(name = "ROLE_ID")
     private int id;
 
+    @Column(nullable = false, unique = true)
     private String role;
 
     @ManyToMany(mappedBy = "roles")
