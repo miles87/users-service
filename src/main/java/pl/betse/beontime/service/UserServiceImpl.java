@@ -2,7 +2,7 @@ package pl.betse.beontime.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import pl.betse.beontime.model.user.User;
+import pl.betse.beontime.model.User;
 import pl.betse.beontime.repository.UserRepository;
 
 import java.util.ArrayList;
@@ -22,8 +22,23 @@ public class UserServiceImpl implements UsersService {
     }
 
     @Override
-    public User getUser(String userEmail) {
-        return userRepository.findById(userEmail).get();
+    public User findById(Integer userId) {
+        return userRepository.findById(userId).get();
+    }
+
+    @Override
+    public boolean existsByUserId(Integer userId) {
+        return userRepository.existsByUserId(userId);
+    }
+
+    @Override
+    public boolean existsByEmailLogin(String userEmail) {
+        return userRepository.existsByEmailLogin(userEmail);
+    }
+
+    @Override
+    public User getUserByEmail(String userEmail) {
+        return userRepository.findByEmail(userEmail);
     }
 
     @Override

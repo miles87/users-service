@@ -2,7 +2,7 @@ package pl.betse.beontime.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import pl.betse.beontime.model.role.UserRole;
+import pl.betse.beontime.model.UserRole;
 import pl.betse.beontime.repository.RoleRepository;
 
 import java.util.ArrayList;
@@ -19,6 +19,11 @@ public class RoleServiceImpl implements RoleService {
         List<UserRole> roles = new ArrayList<>();
         roleRepository.findAll().forEach(roles::add);
         return roles;
+    }
+
+    @Override
+    public UserRole findByName(String roleName) {
+        return roleRepository.findByRole(roleName);
     }
 
     @Override

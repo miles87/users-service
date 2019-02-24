@@ -1,8 +1,9 @@
-package pl.betse.beontime.model.role;
+package pl.betse.beontime.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import pl.betse.beontime.model.enums.RoleEnum;
-import pl.betse.beontime.model.user.User;
+import pl.betse.beontime.model.User;
 
 import javax.persistence.*;
 import java.util.Set;

@@ -1,4 +1,4 @@
-package pl.betse.beontime.model.department;
+package pl.betse.beontime.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

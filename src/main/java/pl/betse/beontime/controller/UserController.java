@@ -1,18 +1,22 @@
 package pl.betse.beontime.controller;
 
+import org.apache.commons.lang3.EnumUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import pl.betse.beontime.model.*;
+import pl.betse.beontime.model.dto.UserDTO;
 import pl.betse.beontime.model.enums.DepartmentEnum;
 import pl.betse.beontime.model.enums.RoleEnum;
-import pl.betse.beontime.model.role.UserRole;
-import pl.betse.beontime.model.user.User;
-import pl.betse.beontime.model.department.UserDepartment;
+import pl.betse.beontime.model.validation.CreateUserValidation;
 import pl.betse.beontime.service.DepartmentService;
 import pl.betse.beontime.service.RoleService;
 import pl.betse.beontime.service.UsersService;
+import pl.betse.beontime.utils.CustomResponseMessage;
+import pl.betse.beontime.utils.DTOResponseConstructor;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -20,6 +24,7 @@ import java.util.List;
 import java.util.Set;
 
 @RestController
+@RequestMapping("/")
 public class UserController {
 
     @Autowired
@@ -31,62 +36,148 @@ public class UserController {
     @Autowired
     RoleService roleService;
 
-    @GetMapping(path = "/hello")
-    public String getUsers() {
-        return "HELLO USERS SERVICE";
+    @Autowired
+    PasswordEncoder passwordEncoder;
+
+    /*
+
+    GET MAPPINGS
+
+    */
+    @GetMapping
+    public @ResponseBody
+    ResponseEntity<?> obtainAllUsers() {
+        List<UserDTO> userList = new ArrayList<>();
+        usersService.findAll()
+                .forEach(x ->
+                        DTOResponseConstructor.buildUserDTOListWithRoles(userList, x));
+        return new ResponseEntity<>(userList, HttpStatus.OK);
     }
 
+    @GetMapping(path = "/{id}")
+    public @ResponseBody
+    ResponseEntity<?> getUserById(@PathVariable("id") String userId) {
 
+        if (!usersService.existsByUserId(Integer.valueOf(userId))) {
+            return new ResponseEntity<>(new CustomResponseMessage(HttpStatus.BAD_REQUEST, "User with ID=" + userId + " doesn't exist!"), HttpStatus.BAD_REQUEST);
+        }
+
+        return new ResponseEntity<>(usersService.findById(Integer.valueOf(userId)), HttpStatus.OK);
+    }
+
+    /*
+
+     POST MAPPINGS
+
+     */
     @PostMapping
     public @ResponseBody
-    List<User> createNewUser() {
-
-        UserDepartment department1 = new UserDepartment(DepartmentEnum.SALESFORCE);
-        departmentService.save(department1);
-        UserDepartment department2 = new UserDepartment(DepartmentEnum.DIGITAL);
-        departmentService.save(department2);
-
-        UserRole userRole1 = new UserRole(RoleEnum.CONSULTANT);
-        roleService.save(userRole1);
-        UserRole userRole2 = new UserRole(RoleEnum.MANAGER);
-        roleService.save(userRole2);
-        UserRole userRole3 = new UserRole(RoleEnum.ADMINISTRATION);
-        roleService.save(userRole3);
+    CustomResponseMessage createNewUser(@RequestBody @Validated(CreateUserValidation.class) UserDTO userDTO) {
 
 
-        //SET 1
-        Set<UserRole> userSetRoles1 = new HashSet<>();
-        userSetRoles1.add(userRole1);
-        userSetRoles1.add(userRole3);
+        if (!EnumUtils.isValidEnum(DepartmentEnum.class, userDTO.getUserDepartment().toUpperCase())) {
+            return new CustomResponseMessage(HttpStatus.BAD_REQUEST, "Department does't exist!");
+        }
 
-        // SET 2
-        Set<UserRole> userSetRoles2 = new HashSet<>();
-        userSetRoles2.add(userRole2);
+        Set<UserRole> newUserRoles = new HashSet<>();
 
-
-        User user1 = new User("test1@be-tse.com", "A", "A", "A", "A", false, department1, userSetRoles1);
-        usersService.save(user1);
-        User user2 = new User("test2@be-tse.com", "B", "B", "B", "B", false, department2, userSetRoles2);
-        usersService.save(user2);
-
-        List<User> userList = new ArrayList<>();
-        userList.add(user1);
-        userList.add(user2);
-
-        return userList;
+        if (userDTO.getRoles() != null) {
+            if (validateUserRoles(userDTO, newUserRoles))
+                return new CustomResponseMessage(HttpStatus.BAD_REQUEST, "Role doesn't exist!");
+        }
 
 
+        User newUser = User.builder()
+                .firstName(userDTO.getFirstName())
+                .lastName(userDTO.getLastName())
+                .isActive(userDTO.isActive())
+                .emailLogin(userDTO.getEmailLogin())
+                .password(passwordEncoder.encode("qwe123!"))
+                .userDepartment(departmentService.findByName(userDTO.getUserDepartment()))
+                .roles(newUserRoles)
+                .build();
+
+
+        usersService.save(newUser);
+
+
+        return new CustomResponseMessage(HttpStatus.OK, newUser.toString());
     }
 
 
-    @GetMapping
-    public List<User> obtainAllUsers() {
-        return usersService.findAll();
+    /*
+
+     PUT MAPPINGS
+
+     */
+
+    @PutMapping(path = "/{id}")
+    public @ResponseBody
+    CustomResponseMessage updateUser(@PathVariable("id") String userId, @RequestBody UserDTO userDTO) {
+
+        if (!usersService.existsByUserId(Integer.valueOf(userId))) {
+            return new CustomResponseMessage(HttpStatus.BAD_REQUEST, "User with ID=" + userId + " doesn't exist!");
+        }
+
+        User user = usersService.findById(Integer.valueOf(userId));
+
+        if (userDTO.getUserDepartment() != null) {
+            if (!EnumUtils.isValidEnum(DepartmentEnum.class, userDTO.getUserDepartment().toUpperCase())) {
+                return new CustomResponseMessage(HttpStatus.BAD_REQUEST, "Department does't exist!");
+            }
+
+            user.setUserDepartment(departmentService.findByName(userDTO.getUserDepartment()));
+        }
+
+        Set<UserRole> newUserRoles = new HashSet<>();
+
+        if (userDTO.getRoles() != null) {
+            if (validateUserRoles(userDTO, newUserRoles))
+                return new CustomResponseMessage(HttpStatus.BAD_REQUEST, "Role doesn't exist!");
+
+            user.setRoles(newUserRoles);
+        }
+
+        if (user.getEmailLogin() != null) {
+
+            if (usersService.existsByEmailLogin(userDTO.getEmailLogin())) {
+                return new CustomResponseMessage(HttpStatus.BAD_REQUEST, "User with email: " + userDTO.getEmailLogin() + " currently exists in database!");
+            }
+
+            user.setEmailLogin(userDTO.getEmailLogin());
+        }
+
+        if (user.getFirstName() != null) {
+            user.setFirstName(userDTO.getFirstName());
+        }
+
+        if (user.getLastName() != null) {
+            user.setLastName(userDTO.getLastName());
+        }
+
+        if (user.getPassword() != null) {
+            user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+        }
+
+
+        return new CustomResponseMessage(HttpStatus.OK, "User successfully updated.");
     }
 
 
-    @GetMapping("/roles")
-    public List<UserRole> getUserRoles() {
-        return roleService.findAll();
+    /*
+
+     ADDITIONAL METHODS
+
+    */
+
+    private boolean validateUserRoles(@Validated(CreateUserValidation.class) @RequestBody UserDTO userDTO, Set<UserRole> newUserRoles) {
+        for (String role : userDTO.getRoles()) {
+            if (!EnumUtils.isValidEnum(RoleEnum.class, role.toUpperCase())) {
+                return true;
+            } else {
+                newUserRoles.add(roleService.findByName(role));
+            }
+        }
+        return false;
     }
 }
