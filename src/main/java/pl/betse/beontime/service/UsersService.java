@@ -1,21 +1,25 @@
 package pl.betse.beontime.service;
 
-import pl.betse.beontime.model.User;
+import pl.betse.beontime.entity.DepartmentEntity;
+import pl.betse.beontime.entity.UserEntity;
 
 import java.util.List;
 
 public interface UsersService {
 
-    List<User> findAll();
+    List<UserEntity> findAll();
 
-    User findById(Integer userId);
+    UserEntity findById(Integer userId);
 
     boolean existsByUserId(Integer userId);
 
     boolean existsByEmailLogin(String userEmail);
 
+    List<UserEntity> findByDepartmentEntity(DepartmentEntity departmentId);
 
-    User getUserByEmail(String userEmail);
+    UserEntity getUserByEmail(String userEmail);
 
-    void save(User user);
+    void save(UserEntity userEntity);
+
+    void deleteById(Integer userId);
 }

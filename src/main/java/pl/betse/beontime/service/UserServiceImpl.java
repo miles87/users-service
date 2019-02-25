@@ -2,7 +2,8 @@ package pl.betse.beontime.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import pl.betse.beontime.model.User;
+import pl.betse.beontime.entity.DepartmentEntity;
+import pl.betse.beontime.entity.UserEntity;
 import pl.betse.beontime.repository.UserRepository;
 
 import java.util.ArrayList;
@@ -15,14 +16,14 @@ public class UserServiceImpl implements UsersService {
     UserRepository userRepository;
 
     @Override
-    public List<User> findAll() {
-        List<User> userList = new ArrayList<>();
-        userRepository.findAll().forEach(userList::add);
-        return userList;
+    public List<UserEntity> findAll() {
+        List<UserEntity> userEntityList = new ArrayList<>();
+        userRepository.findAll().forEach(userEntityList::add);
+        return userEntityList;
     }
 
     @Override
-    public User findById(Integer userId) {
+    public UserEntity findById(Integer userId) {
         return userRepository.findById(userId).get();
     }
 
@@ -37,12 +38,22 @@ public class UserServiceImpl implements UsersService {
     }
 
     @Override
-    public User getUserByEmail(String userEmail) {
+    public UserEntity getUserByEmail(String userEmail) {
         return userRepository.findByEmail(userEmail);
     }
 
     @Override
-    public void save(User user) {
-        userRepository.save(user);
+    public List<UserEntity> findByDepartmentEntity(DepartmentEntity department) {
+        return userRepository.findByDepartmentEntity(department);
+    }
+
+    @Override
+    public void deleteById(Integer userId) {
+        userRepository.deleteById(userId);
+    }
+
+    @Override
+    public void save(UserEntity userEntity) {
+        userRepository.save(userEntity);
     }
 }

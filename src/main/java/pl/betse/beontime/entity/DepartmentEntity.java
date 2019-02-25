@@ -1,4 +1,4 @@
-package pl.betse.beontime.model;
+package pl.betse.beontime.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,7 +12,7 @@ import javax.persistence.*;
 @AllArgsConstructor
 @Entity
 @Table(name = "DEPARTMENTS")
-public class UserDepartment {
+public class DepartmentEntity {
 
 
     @Id
@@ -20,7 +20,7 @@ public class UserDepartment {
     @Column(name = "DEPARTMENT_ID")
     private int id;
 
-     public UserDepartment(DepartmentEnum name) {
+     public DepartmentEntity(DepartmentEnum name) {
         this.name = name.name();
     }
 

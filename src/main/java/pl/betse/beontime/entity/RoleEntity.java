@@ -1,9 +1,7 @@
-package pl.betse.beontime.model;
+package pl.betse.beontime.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.*;
 import pl.betse.beontime.model.enums.RoleEnum;
-import pl.betse.beontime.model.User;
 
 import javax.persistence.*;
 import java.util.Set;
@@ -14,7 +12,7 @@ import java.util.Set;
 @AllArgsConstructor
 @Entity
 @Table(name = "ROLE")
-public class UserRole {
+public class RoleEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -25,9 +23,9 @@ public class UserRole {
     private String role;
 
     @ManyToMany(mappedBy = "roles")
-    private Set<User> users;
+    private Set<UserEntity> userEntities;
 
-    public UserRole(RoleEnum roleEnum) {
+    public RoleEntity(RoleEnum roleEnum) {
         this.role = roleEnum.name();
     }
 

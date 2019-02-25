@@ -1,13 +1,11 @@
 package pl.betse.beontime.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
-import pl.betse.beontime.model.User;
-import pl.betse.beontime.model.dto.RoleDTO;
-import pl.betse.beontime.model.dto.UserDTO;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+import pl.betse.beontime.entity.UserEntity;
+import pl.betse.beontime.bo.RoleDTO;
+import pl.betse.beontime.bo.UserDTO;
 import pl.betse.beontime.service.DepartmentService;
 import pl.betse.beontime.service.RoleService;
 import pl.betse.beontime.service.UsersService;
@@ -39,13 +37,12 @@ public class RoleController {
 
             List<UserDTO> usersList = new ArrayList<>();
 
-            for (User user : x.getUsers()) {
-                DTOResponseConstructor.buildUserDTOListWithRoles(usersList, user);
+            for (UserEntity userEntity : x.getUserEntities()) {
+                DTOResponseConstructor.buildUserDTOListWithRoles(usersList, userEntity);
             }
 
             roleList.add(RoleDTO.builder().role(x.getRole()).id(x.getId()).users(usersList).build());
         });
-
 
         return roleList;
     }

@@ -1,4 +1,4 @@
-package pl.betse.beontime.model;
+package pl.betse.beontime.entity;
 
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -12,11 +12,11 @@ import java.util.Set;
 @Setter
 @Builder
 @ToString
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "USER")
-public class User {
+public class UserEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,30 +35,21 @@ public class User {
     @JsonIgnore
     private String password;
 
-    @JsonProperty
+    @JsonProperty("active")
     private boolean isActive;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "DEPARTMENT_ID")
     @JsonIgnore
-    private UserDepartment userDepartment;
+    private DepartmentEntity departmentEntity;
 
     @ManyToMany
     @JsonIgnore
     @JoinTable(name = "USER_ROLES",
             joinColumns = @JoinColumn(name = "USER_ID"),
             inverseJoinColumns = @JoinColumn(name = "ROLE_ID"))
-    private Set<UserRole> roles;
+    private Set<RoleEntity> roles;
 
-    public User(String emailLogin, String firstName, String lastName, String password, boolean isActive, UserDepartment userDepartment, Set<UserRole> roles) {
-        this.emailLogin = emailLogin;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.password = password;
-        this.isActive = isActive;
-        this.userDepartment = userDepartment;
-        this.roles = roles;
-    }
 
 }
 

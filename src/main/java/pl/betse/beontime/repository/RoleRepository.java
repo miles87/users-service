@@ -2,13 +2,13 @@ package pl.betse.beontime.repository;
 
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
-import pl.betse.beontime.model.UserRole;
+import pl.betse.beontime.entity.RoleEntity;
 
 
 @Repository
-public interface RoleRepository extends CrudRepository<UserRole, Integer> {
+public interface RoleRepository extends CrudRepository<RoleEntity, Integer> {
 
 
-    UserRole findByRole(String roleName);
+    RoleEntity findByRole(String roleName);
 
 }

@@ -7,8 +7,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import pl.betse.beontime.model.*;
-import pl.betse.beontime.model.dto.UserDTO;
+import pl.betse.beontime.bo.UserDTO;
+import pl.betse.beontime.entity.UserEntity;
+import pl.betse.beontime.entity.RoleEntity;
 import pl.betse.beontime.model.enums.DepartmentEnum;
 import pl.betse.beontime.model.enums.RoleEnum;
 import pl.betse.beontime.model.validation.CreateUserValidation;
@@ -39,11 +40,6 @@ public class UserController {
     @Autowired
     PasswordEncoder passwordEncoder;
 
-    /*
-
-    GET MAPPINGS
-
-    */
     @GetMapping
     public @ResponseBody
     ResponseEntity<?> obtainAllUsers() {
@@ -57,125 +53,134 @@ public class UserController {
     @GetMapping(path = "/{id}")
     public @ResponseBody
     ResponseEntity<?> getUserById(@PathVariable("id") String userId) {
-
         if (!usersService.existsByUserId(Integer.valueOf(userId))) {
-            return new ResponseEntity<>(new CustomResponseMessage(HttpStatus.BAD_REQUEST, "User with ID=" + userId + " doesn't exist!"), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new CustomResponseMessage(HttpStatus.BAD_REQUEST, "UserEntity with ID=" + userId + " doesn't exist!"), HttpStatus.BAD_REQUEST);
         }
 
-        return new ResponseEntity<>(usersService.findById(Integer.valueOf(userId)), HttpStatus.OK);
+        UserEntity userEntity = usersService.findById(Integer.valueOf(userId));
+
+        Set<String> userRoles = new HashSet<>();
+
+        for (RoleEntity roleEntity : userEntity.getRoles()) {
+            userRoles.add(new StringBuilder().append(roleEntity.getRole()).toString());
+        }
+
+        UserDTO userDTO = UserDTO.builder()
+                .userId(userEntity.getUserId())
+                .firstName(userEntity.getFirstName())
+                .lastName(userEntity.getLastName())
+                .emailLogin(userEntity.getEmailLogin())
+                .isActive(userEntity.isActive())
+                .department(userEntity.getDepartmentEntity().getName())
+                .roles(userRoles)
+                .build();
+
+
+        return new ResponseEntity<>(userDTO, HttpStatus.OK);
     }
 
-    /*
 
-     POST MAPPINGS
-
-     */
     @PostMapping
     public @ResponseBody
     CustomResponseMessage createNewUser(@RequestBody @Validated(CreateUserValidation.class) UserDTO userDTO) {
-
-
-        if (!EnumUtils.isValidEnum(DepartmentEnum.class, userDTO.getUserDepartment().toUpperCase())) {
+        if (!EnumUtils.isValidEnum(DepartmentEnum.class, userDTO.getDepartment().toUpperCase())) {
             return new CustomResponseMessage(HttpStatus.BAD_REQUEST, "Department does't exist!");
         }
 
-        Set<UserRole> newUserRoles = new HashSet<>();
-
+        Set<RoleEntity> newRoleEntities = new HashSet<>();
         if (userDTO.getRoles() != null) {
-            if (validateUserRoles(userDTO, newUserRoles))
+            if (validateUserRoles(userDTO, newRoleEntities))
                 return new CustomResponseMessage(HttpStatus.BAD_REQUEST, "Role doesn't exist!");
         }
-
-
-        User newUser = User.builder()
+        UserEntity newUserEntity = UserEntity.builder()
                 .firstName(userDTO.getFirstName())
                 .lastName(userDTO.getLastName())
                 .isActive(userDTO.isActive())
                 .emailLogin(userDTO.getEmailLogin())
                 .password(passwordEncoder.encode("qwe123!"))
-                .userDepartment(departmentService.findByName(userDTO.getUserDepartment()))
-                .roles(newUserRoles)
+                .departmentEntity(departmentService.findByName(userDTO.getDepartment()))
+                .roles(newRoleEntities)
                 .build();
 
-
-        usersService.save(newUser);
-
-
-        return new CustomResponseMessage(HttpStatus.OK, newUser.toString());
+        usersService.save(newUserEntity);
+        return new CustomResponseMessage(HttpStatus.CREATED, newUserEntity.toString());
     }
 
-
-    /*
-
-     PUT MAPPINGS
-
-     */
 
     @PutMapping(path = "/{id}")
     public @ResponseBody
     CustomResponseMessage updateUser(@PathVariable("id") String userId, @RequestBody UserDTO userDTO) {
 
         if (!usersService.existsByUserId(Integer.valueOf(userId))) {
-            return new CustomResponseMessage(HttpStatus.BAD_REQUEST, "User with ID=" + userId + " doesn't exist!");
+            return new CustomResponseMessage(HttpStatus.BAD_REQUEST, "UserEntity with ID=" + userId + " doesn't exist!");
         }
 
-        User user = usersService.findById(Integer.valueOf(userId));
+        UserEntity userEntity = usersService.findById(Integer.valueOf(userId));
 
-        if (userDTO.getUserDepartment() != null) {
-            if (!EnumUtils.isValidEnum(DepartmentEnum.class, userDTO.getUserDepartment().toUpperCase())) {
+        if (userDTO.getDepartment() != null) {
+            if (!EnumUtils.isValidEnum(DepartmentEnum.class, userDTO.getDepartment().toUpperCase())) {
                 return new CustomResponseMessage(HttpStatus.BAD_REQUEST, "Department does't exist!");
             }
 
-            user.setUserDepartment(departmentService.findByName(userDTO.getUserDepartment()));
+            userEntity.setDepartmentEntity(departmentService.findByName(userDTO.getDepartment()));
         }
 
-        Set<UserRole> newUserRoles = new HashSet<>();
+        Set<RoleEntity> newRoleEntities = new HashSet<>();
 
         if (userDTO.getRoles() != null) {
-            if (validateUserRoles(userDTO, newUserRoles))
+            if (validateUserRoles(userDTO, newRoleEntities))
                 return new CustomResponseMessage(HttpStatus.BAD_REQUEST, "Role doesn't exist!");
-
-            user.setRoles(newUserRoles);
+            userEntity.setRoles(newRoleEntities);
         }
-
-        if (user.getEmailLogin() != null) {
-
+        if (userDTO.getEmailLogin() != null) {
             if (usersService.existsByEmailLogin(userDTO.getEmailLogin())) {
-                return new CustomResponseMessage(HttpStatus.BAD_REQUEST, "User with email: " + userDTO.getEmailLogin() + " currently exists in database!");
+                return new CustomResponseMessage(HttpStatus.BAD_REQUEST, "UserEntity with email: " + userDTO.getEmailLogin() + " currently exists in database!");
             }
-
-            user.setEmailLogin(userDTO.getEmailLogin());
+            userEntity.setEmailLogin(userDTO.getEmailLogin());
+        }
+        if (userDTO.getFirstName() != null) {
+            userEntity.setFirstName(userDTO.getFirstName());
+        }
+        if (userDTO.getLastName() != null) {
+            userEntity.setLastName(userDTO.getLastName());
+        }
+        if (userDTO.getPassword() != null) {
+            userEntity.setPassword(passwordEncoder.encode(userDTO.getPassword()));
         }
 
-        if (user.getFirstName() != null) {
-            user.setFirstName(userDTO.getFirstName());
+        if (userDTO.isActive()) {
+            userEntity.setActive(true);
         }
 
-        if (user.getLastName() != null) {
-            user.setLastName(userDTO.getLastName());
+        if (!userDTO.isActive()) {
+            userEntity.setActive(false);
         }
 
-        if (user.getPassword() != null) {
-            user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
-        }
+        usersService.save(userEntity);
 
-
-        return new CustomResponseMessage(HttpStatus.OK, "User successfully updated.");
+        return new CustomResponseMessage(HttpStatus.CREATED, "UserEntity successfully updated.");
     }
 
 
-    /*
+    @DeleteMapping(path = "/{id}")
+    public @ResponseBody
+    CustomResponseMessage deleteUserById(@PathVariable("id") String userId) {
 
-     ADDITIONAL METHODS
+        if (!usersService.existsByUserId(Integer.valueOf(userId))) {
+            return new CustomResponseMessage(HttpStatus.BAD_REQUEST, "UserEntity with ID=" + userId + " doesn't exist!");
+        }
 
-    */
+        usersService.deleteById(Integer.valueOf(userId));
 
-    private boolean validateUserRoles(@Validated(CreateUserValidation.class) @RequestBody UserDTO userDTO, Set<UserRole> newUserRoles) {
+        return new CustomResponseMessage(HttpStatus.OK, "User succesfully deleted!");
+    }
+
+    private boolean validateUserRoles(@Validated(CreateUserValidation.class) @RequestBody UserDTO userDTO, Set<RoleEntity> newRoleEntities) {
         for (String role : userDTO.getRoles()) {
             if (!EnumUtils.isValidEnum(RoleEnum.class, role.toUpperCase())) {
                 return true;
             } else {
-                newUserRoles.add(roleService.findByName(role));
+                newRoleEntities.add(roleService.findByName(role));
             }
         }
         return false;

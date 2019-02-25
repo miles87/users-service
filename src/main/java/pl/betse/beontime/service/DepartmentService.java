@@ -1,12 +1,17 @@
 package pl.betse.beontime.service;
 
 
-import pl.betse.beontime.model.UserDepartment;
+import pl.betse.beontime.entity.DepartmentEntity;
+
+import java.util.List;
 
 public interface DepartmentService {
 
-    UserDepartment findByName(String departmentName);
+    DepartmentEntity findByName(String departmentName);
 
-    void save(UserDepartment userDepartment);
+    void save(DepartmentEntity departmentEntity);
 
+    List<DepartmentEntity> findAll();
+
+    DepartmentEntity getDepartmentById(Integer departmentId);
 }

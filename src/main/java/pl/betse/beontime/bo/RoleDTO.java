@@ -1,4 +1,4 @@
-package pl.betse.beontime.model.dto;
+package pl.betse.beontime.bo;
 
 import lombok.*;
 

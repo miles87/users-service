@@ -1,8 +1,9 @@
-package pl.betse.beontime.model.dto;
+package pl.betse.beontime.bo;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import pl.betse.beontime.model.validation.CreateUserValidation;
+import pl.betse.beontime.model.validation.LoginUserValidation;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -18,8 +19,8 @@ public class UserDTO {
 
     private Integer userId;
 
-    @NotNull(groups = {CreateUserValidation.class})
-    @NotEmpty(groups = {CreateUserValidation.class})
+    @NotNull(groups = {CreateUserValidation.class, LoginUserValidation.class})
+    @NotEmpty(groups = {CreateUserValidation.class, LoginUserValidation.class})
     private String emailLogin;
 
     private String firstName;
@@ -27,14 +28,16 @@ public class UserDTO {
     private String lastName;
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @NotNull(groups = {LoginUserValidation.class})
+    @NotEmpty(groups = {LoginUserValidation.class})
     private String password;
 
-    @JsonProperty()
+    @JsonProperty("active")
     private boolean isActive;
 
     @NotNull(groups = {CreateUserValidation.class})
     @NotEmpty(groups = {CreateUserValidation.class})
-    private String userDepartment;
+    private String department;
 
     private Set<String> roles;
 

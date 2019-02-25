@@ -13,12 +13,12 @@ import org.springframework.http.HttpStatus;
 @AllArgsConstructor
 public class CustomResponseMessage {
 
-    private int stat_code;
+    private int statCode;
     private HttpStatus stat;
     private String message;
 
     public CustomResponseMessage(HttpStatus stat, String message) {
-        this.stat_code = stat.value();
+        this.statCode = stat.value();
         this.stat = stat;
         this.message = message;
     }
