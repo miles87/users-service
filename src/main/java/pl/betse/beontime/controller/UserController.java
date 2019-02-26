@@ -1,18 +1,19 @@
 package pl.betse.beontime.controller;
 
 import org.apache.commons.lang3.EnumUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import pl.betse.beontime.bo.UserDTO;
-import pl.betse.beontime.entity.UserEntity;
 import pl.betse.beontime.entity.RoleEntity;
+import pl.betse.beontime.entity.UserEntity;
 import pl.betse.beontime.model.enums.DepartmentEnum;
 import pl.betse.beontime.model.enums.RoleEnum;
 import pl.betse.beontime.model.validation.CreateUserValidation;
+import pl.betse.beontime.myException.UserExistException;
+import pl.betse.beontime.myException.UserNotFoundException;
 import pl.betse.beontime.service.DepartmentService;
 import pl.betse.beontime.service.RoleService;
 import pl.betse.beontime.service.UsersService;
@@ -28,17 +29,18 @@ import java.util.Set;
 @RequestMapping("/")
 public class UserController {
 
-    @Autowired
-    UsersService usersService;
 
-    @Autowired
-    DepartmentService departmentService;
+    private UsersService usersService;
+    private DepartmentService departmentService;
+    private RoleService roleService;
+    private PasswordEncoder passwordEncoder;
 
-    @Autowired
-    RoleService roleService;
-
-    @Autowired
-    PasswordEncoder passwordEncoder;
+    public UserController(UsersService usersService, DepartmentService departmentService, RoleService roleService, PasswordEncoder passwordEncoder) {
+        this.usersService = usersService;
+        this.departmentService = departmentService;
+        this.roleService = roleService;
+        this.passwordEncoder = passwordEncoder;
+    }
 
     @GetMapping
     public @ResponseBody
@@ -54,7 +56,8 @@ public class UserController {
     public @ResponseBody
     ResponseEntity<?> getUserById(@PathVariable("id") String userId) {
         if (!usersService.existsByUserId(Integer.valueOf(userId))) {
-            return new ResponseEntity<>(new CustomResponseMessage(HttpStatus.BAD_REQUEST, "UserEntity with ID=" + userId + " doesn't exist!"), HttpStatus.BAD_REQUEST);
+            throw new UserNotFoundException();
+//return new ResponseEntity<>(new CustomResponseMessage(HttpStatus.BAD_REQUEST, "UserEntity with ID=" + userId + " doesn't exist!"), HttpStatus.BAD_REQUEST);
         }
 
         UserEntity userEntity = usersService.findById(Integer.valueOf(userId));
@@ -83,6 +86,12 @@ public class UserController {
     @PostMapping
     public @ResponseBody
     CustomResponseMessage createNewUser(@RequestBody @Validated(CreateUserValidation.class) UserDTO userDTO) {
+
+        if (usersService.existsByEmailLogin(userDTO.getEmailLogin())) {
+            throw new UserExistException();
+        }
+
+
         if (!EnumUtils.isValidEnum(DepartmentEnum.class, userDTO.getDepartment().toUpperCase())) {
             return new CustomResponseMessage(HttpStatus.BAD_REQUEST, "Department does't exist!");
         }
@@ -91,6 +100,8 @@ public class UserController {
         if (userDTO.getRoles() != null) {
             if (validateUserRoles(userDTO, newRoleEntities))
                 return new CustomResponseMessage(HttpStatus.BAD_REQUEST, "Role doesn't exist!");
+
+
         }
         UserEntity newUserEntity = UserEntity.builder()
                 .firstName(userDTO.getFirstName())
