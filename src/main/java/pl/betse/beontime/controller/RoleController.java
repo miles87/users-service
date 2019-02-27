@@ -1,11 +1,10 @@
 package pl.betse.beontime.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import pl.betse.beontime.entity.UserEntity;
 import pl.betse.beontime.bo.RoleDTO;
 import pl.betse.beontime.bo.UserDTO;
+import pl.betse.beontime.entity.UserEntity;
+import pl.betse.beontime.repository.RoleRepository;
 import pl.betse.beontime.service.DepartmentService;
 import pl.betse.beontime.service.RoleService;
 import pl.betse.beontime.service.UsersService;
@@ -18,15 +17,17 @@ import java.util.List;
 @RequestMapping("/roles")
 public class RoleController {
 
-
-    @Autowired
     UsersService usersService;
-
-    @Autowired
     DepartmentService departmentService;
-
-    @Autowired
     RoleService roleService;
+    RoleRepository roleRepository;
+
+    public RoleController(UsersService usersService, DepartmentService departmentService, RoleService roleService, RoleRepository roleRepository) {
+        this.usersService = usersService;
+        this.departmentService = departmentService;
+        this.roleService = roleService;
+        this.roleRepository = roleRepository;
+    }
 
     @GetMapping()
     public @ResponseBody

@@ -57,7 +57,6 @@ public class UserController {
     ResponseEntity<?> getUserById(@PathVariable("id") String userId) {
         if (!usersService.existsByUserId(Integer.valueOf(userId))) {
             throw new UserNotFoundException();
-//return new ResponseEntity<>(new CustomResponseMessage(HttpStatus.BAD_REQUEST, "UserEntity with ID=" + userId + " doesn't exist!"), HttpStatus.BAD_REQUEST);
         }
 
         UserEntity userEntity = usersService.findById(Integer.valueOf(userId));
@@ -122,8 +121,8 @@ public class UserController {
     public @ResponseBody
     CustomResponseMessage updateUser(@PathVariable("id") String userId, @RequestBody UserDTO userDTO) {
 
-        if (!usersService.existsByUserId(Integer.valueOf(userId))) {
-            return new CustomResponseMessage(HttpStatus.BAD_REQUEST, "UserEntity with ID=" + userId + " doesn't exist!");
+        if (!usersService.existsByEmailLogin(userDTO.getEmailLogin())) {
+            throw new UserNotFoundException();
         }
 
         UserEntity userEntity = usersService.findById(Integer.valueOf(userId));
@@ -178,7 +177,7 @@ public class UserController {
     CustomResponseMessage deleteUserById(@PathVariable("id") String userId) {
 
         if (!usersService.existsByUserId(Integer.valueOf(userId))) {
-            return new CustomResponseMessage(HttpStatus.BAD_REQUEST, "UserEntity with ID=" + userId + " doesn't exist!");
+            throw new UserNotFoundException();
         }
 
         usersService.deleteById(Integer.valueOf(userId));

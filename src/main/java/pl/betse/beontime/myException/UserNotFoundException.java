@@ -4,6 +4,6 @@ import lombok.NoArgsConstructor;
 
 
 @NoArgsConstructor
-public class UserNotFoundException extends RuntimeException {
+public class UserNotFoundException extends NullPointerException {
 
 }
